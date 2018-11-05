@@ -1,6 +1,6 @@
-from main.stravaintegration import StravaIntegration
+from stravaIntegration import StravaIntegration
 from unittest import TestCase
-from mockito import when, mock, unstub
+
 
 class StravaIntegrationTest(TestCase):
     def test_initialize_strava(self):
