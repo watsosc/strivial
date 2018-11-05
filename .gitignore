@@ -14,3 +14,13 @@ clienttoken
 main/__pycache__/main\.cpython-37\.pyc
 
 main/__pycache__/server\.cpython-37\.pyc
+
+__pycache__/server\.cpython-37\.pyc
+
+response/__pycache__/badRequestHandler\.cpython-37\.pyc
+
+response/__pycache__/requestHandler\.cpython-37\.pyc
+
+response/__pycache__/templateHandler\.cpython-37\.pyc
+
+routes/__pycache__/main\.cpython-37\.pyc
