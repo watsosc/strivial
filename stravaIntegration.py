@@ -13,5 +13,8 @@ class StravaIntegration:
         self.logged_in = False
         client_file.close()
 
+    def get_auth_url(self):
+        return self.client.authorization_url(client_id=self.client_id, redirect_uri='http://localhost:8888/authorization')
+
     def get_activities(self):
         return [activity.to_dict() for activity in self.client.get_activities(limit=10)]
