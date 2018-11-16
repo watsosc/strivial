@@ -1,26 +1,10 @@
 
-\.idea/misc\.xml
-
-\.idea/modules\.xml
-
-\.idea/strivial\.iml
-
-\.idea/vcs\.xml
-
-\.idea/workspace\.xml
+\.idea/
 
 clienttoken
 
-main/__pycache__/main\.cpython-37\.pyc
+__pycache__/
 
-main/__pycache__/server\.cpython-37\.pyc
+env/
 
-__pycache__/server\.cpython-37\.pyc
-
-response/__pycache__/badRequestHandler\.cpython-37\.pyc
-
-response/__pycache__/requestHandler\.cpython-37\.pyc
-
-response/__pycache__/templateHandler\.cpython-37\.pyc
-
-routes/__pycache__/main\.cpython-37\.pyc
+migrations/
