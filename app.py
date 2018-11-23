@@ -2,9 +2,10 @@
 # Imports
 #----------------------------------------------------------------------------#
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import logging
+import time
 from logging import Formatter, FileHandler
 from stravaIntegration import StravaIntegration
 import os
@@ -38,47 +39,58 @@ from models import *
 
 @app.route('/')
 def home():
-    return render_template('pages/placeholder.home.html')
+    name = request.remote_addr
+    user = db.session.query(User).filter(
+        User.name == name).first()
+    # we found a user and the token is still valid, that's great!
+    if user is not None and user.token_expires_at > int(time.time()):
+        strava.log_in_user(user)
+        return redirect(url_for('authorized'))
+
+    # TODO: there should be a way to refresh the token if it has expired
+    return render_template('pages/main.home.html')
 
 
 @app.route('/about')
 def about():
-    return render_template('pages/placeholder.about.html')
+    return render_template('pages/main.about.html')
 
 @app.route('/authorized', methods=['GET', 'POST'])
 def authorized():
-    # Strava sends back something like this:
-    #    /authorized?state=&code=3b90387114bf639aee734e13f76df5bc43ca4d5d&scope=read,activity:read
-    code = request.args.get('code')
-    scope = request.args.get('scope')
+    error = request.args.get('error')
+    if error:
+        return render_template('pages/main.auth-failed.html', error=error)
 
-    token_response = strava.get_token_response(code)
-    access_token = token_response['access_token']
-    refresh_token = token_response['refresh_token']
-    expires_at = token_response['expires_at']
-    activity_access = strava.get_activity_acess(scope)
+    if strava.logged_in is False:
+        # Strava sends back something like this:
+        #    /authorized?state=&code=xxxxxxxxxxxxxxxxxxxxxxxxxx&scope=read,activity:read
+        code = request.args.get('code')
+        scope = request.args.get('scope')
 
-    name = 'temporary'
-    user = db.session.query(User).filter(
-        User.name == name).first()
-    if user is None:
+        # get the auth tokens from strava based on the returned code
+        token_response = strava.get_token_response(code)
+        access_token = token_response['access_token']
+        refresh_token = token_response['refresh_token']
+        expires_at = token_response['expires_at']
+        activity_access = strava.get_activity_acess(scope)
+
+        # set the user name to the current IP address, this way if someone comes back from the same IP we can log them right in
         user = User(
-            name="temporary",
+            name=request.remote_addr,
             access_token=access_token,
             refresh_token=refresh_token,
             token_expires_at=expires_at,
             activity_access=activity_access
         )
         db.session.add(user)
-    else:
-        user.access_token = access_token
-        user.refresh_token = refresh_token
-        user.token_expires_at = expires_at
+        db.session.commit()
+        db.session.close()
 
-    db.session.commit()
-    db.session.close()
+        strava.logged_in = True
+    athlete = strava.get_athlete()
+    athlete_name = "{0} {1}".format(athlete.firstname, athlete.lastname)
 
-    return render_template('pages/placeholder.auth.html')
+    return render_template('pages/main.auth.html', athlete_name=athlete_name)
 
 @app.context_processor
 def variables():

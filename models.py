@@ -8,7 +8,7 @@ class User(db.Model):
     name = db.Column(db.String(120), unique=True)
     access_token = db.Column(db.String(120))
     refresh_token = db.Column(db.String(120))
-    token_expires_at = db.Column(db.DateTime())
+    token_expires_at = db.Column(db.BigInteger())
     activity_access = db.Column(db.Boolean())
 
     def __init__(self, name=None, access_token=None, refresh_token=None, token_expires_at=None, activity_access=False):
