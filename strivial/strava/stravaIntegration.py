@@ -1,6 +1,6 @@
 import os.path
+from datetime import date, timedelta
 from stravalib.client import Client
-
 
 class StravaIntegration:
     def __init__(self):
@@ -34,5 +34,16 @@ class StravaIntegration:
     def get_athlete(self):
         return self.client.get_athlete()
 
-    def get_activities(self):
-        return [activity.to_dict() for activity in self.client.get_activities(limit=10)]
+    def get_last_activities(self, limit):
+        activities = self.client.get_activities(limit=limit)
+        for activity in activities:
+            print(activity)
+            # new_activity = Activity(activity_id=activity.activity_id)
+            # db.session.add(new_activity)
+            # db.session.commit()
+            # db.session.close()
+
+        return activities
+
+    def get_thirty_day_averages(self):
+        return None

@@ -1,6 +1,8 @@
-from app import db
+from strivial.database import db
 
-# Set your classes here.
+'''
+Table for storing strava user data: user name, tokens, expiry, etc.
+'''
 class User(db.Model):
     __tablename__ = 'users'
 

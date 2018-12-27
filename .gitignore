@@ -8,3 +8,10 @@ __pycache__/
 env/
 
 migrations/
+strivial\.egg-info/
+
+venv/bin/
+
+venv/lib/python3\.7/site-packages/Click-7\.0\.dist-info/
+
+venv/lib/python3\.7/site-packages/click/

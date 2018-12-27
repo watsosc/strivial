@@ -26,10 +26,10 @@
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
-            <a class="nav-link" href="{{ url_for('home') }}">Home <span class="sr-only">(current)</span></a>
+            <a class="nav-link" href="{{ url_for('routes.home') }}">Home <span class="sr-only">(current)</span></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('about') }}">About</a>
+            <a class="nav-link" href="{{ url_for('routes.about') }}">About</a>
           </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
@@ -40,6 +40,11 @@
             </div>
           </li>
         </ul>
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('routes.logout') }}">Logout</a>
+          </li>
+        </ul>
       </div>
     </nav>
 
@@ -48,7 +53,7 @@
       <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="jumbotron">
         <div class="container">
-          {% block content %}{% endblock %}
+          {% block jumbotron %}{% endblock %}
         </div>
       </div>
 
@@ -56,19 +61,25 @@
         <!-- Example row of columns -->
         <div class="row">
           <div class="col-md-4">
-            <h2>Heading</h2>
-            <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-            <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+            <h2>Power</h2>
+            {% if not logged_in %}
+            <p>No power data available when not logged in.</p>
+            {% endif %}
+            <p><a class="btn btn-secondary" href="#" role="button" aria-disabled="{{ not logged_in }}">View details &raquo;</a></p>
           </div>
           <div class="col-md-4">
-            <h2>Heading</h2>
-            <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-            <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+            <h2>Recent Rides</h2>
+            {% if not logged_in %}
+            <p>No ride data available when not logged in.</p>
+            {% endif %}
+            <p><a class="btn btn-secondary" href="#" role="button" aria-disabled="{{ not logged_in }}">View details &raquo;</a></p>
           </div>
           <div class="col-md-4">
-            <h2>Heading</h2>
-            <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-            <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+            <h2>Routing</h2>
+            {% if not logged_in %}
+            <p>No routing data available when not logged in.</p>
+            {% endif %}
+            <p><a class="btn btn-secondary" href="#" role="button" aria-disabled="{{ not logged_in }}">View details &raquo;</a></p>
           </div>
         </div>
 

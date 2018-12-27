@@ -1,5 +1,5 @@
 from urllib.parse import quote
-from stravaIntegration import StravaIntegration
+from strivial.strava.stravaIntegration import StravaIntegration
 from unittest import TestCase
 
 
