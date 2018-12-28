@@ -28,6 +28,9 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
 
+    from strivial.strava import stravaIntegration
+    app.strava = stravaIntegration.StravaIntegration()
+
     # apply the blueprints
     from strivial.blueprints import routes, errors
     app.register_blueprint(routes.bp)

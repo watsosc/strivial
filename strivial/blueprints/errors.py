@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template
 
-bp = Blueprint('routes', __name__, url_prefix='/')
+bp = Blueprint('errors', __name__, url_prefix='/')
 
 # Error handlers.
 
