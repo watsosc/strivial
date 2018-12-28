@@ -29,8 +29,9 @@ def create_app():
     db.init_app(app)
 
     # apply the blueprints
-    from strivial.blueprints import routes
+    from strivial.blueprints import routes, errors
     app.register_blueprint(routes.bp)
+    app.register_blueprint(errors.bp)
 
     app.add_url_rule('/', endpoint='home')
 

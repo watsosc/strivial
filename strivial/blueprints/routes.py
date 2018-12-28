@@ -2,7 +2,6 @@
 # Imports
 #----------------------------------------------------------------------------#
 from flask import Blueprint, render_template, request, redirect, url_for
-import time
 from strivial.strava.stravaIntegration import StravaIntegration
 from strivial.database import db
 
@@ -10,26 +9,18 @@ bp = Blueprint('routes', __name__, url_prefix='/')
 
 strava = StravaIntegration()
 
-from strivial.models.models import *
+from strivial.models.users import User
 
 #----------------------------------------------------------------------------#
 # Controllers.
 #----------------------------------------------------------------------------#
 @bp.route('/')
 def home():
-    name = request.remote_addr
-    user = db.session.query(User).filter(
-        User.name == name).first()
-    # we found a user and the token is still valid, that's great!
-    if user is not None and user.token_expires_at > int(time.time()):
-        strava.log_in_user(user)
-        return show_after_auth()
-    elif user is not None:
-        db.session.delete(user)
-        db.session.commit()
-        db.session.close()
+    strava.check_if_user_has_valid_token(request.remote_addr)
 
-    # TODO: there should be a way to refresh the token if it has expired
+    if strava.logged_in:
+        return show_after_auth()
+
     return render_template('pages/main.home.html', logged_in=strava.logged_in)
 
 
@@ -46,29 +37,11 @@ def authorized():
     if strava.logged_in is False:
         # Strava sends back something like this:
         #    /authorized?state=&code=xxxxxxxxxxxxxxxxxxxxxxxxxx&scope=read,activity:read
+        # the code confirms the Oauth login, the scope gives our access to a user's files
         code = request.args.get('code')
         scope = request.args.get('scope')
+        strava.log_in_user(request.remote_addr, code, scope)
 
-        # get the auth tokens from strava based on the returned code
-        token_response = strava.get_token_response(code)
-        access_token = token_response['access_token']
-        refresh_token = token_response['refresh_token']
-        expires_at = token_response['expires_at']
-        activity_access = strava.get_activity_acess(scope)
-
-        # set the user name to the current IP address, this way if someone comes back from the same IP we can log them right in
-        user = User(
-            name=request.remote_addr,
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_expires_at=expires_at,
-            activity_access=activity_access
-        )
-        db.session.add(user)
-        db.session.commit()
-        db.session.close()
-
-        strava.logged_in = True
     return show_after_auth()
 
 def show_after_auth():
@@ -83,13 +56,7 @@ def show_after_auth():
 
 @bp.route('/logout', methods=['GET', 'POST'])
 def logout():
-    strava.client.deauthorize()
-    user = db.session.query(User).filter(
-        User.name == request.remote_addr).first()
-    db.session.delete(user)
-    db.session.commit()
-    db.session.close()
-    strava.logged_in = False
+    strava.log_out_user(request.remote_addr)
 
     return redirect(url_for('home'))
 
