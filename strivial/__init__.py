@@ -3,10 +3,14 @@ import logging
 from logging import Formatter, FileHandler
 from flask import Flask
 
-def create_app():
+def create_app(test_config=False):
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_object(os.environ['APP_SETTINGS'])
+    if test_config:
+        app.config.from_object('config.TestingConfig')
+    else:
+        app.config.from_object(os.environ['APP_SETTINGS'])
 
+    # set up logging if applicable
     if not app.debug:
         file_handler = FileHandler('error.log')
         file_handler.setFormatter(
@@ -28,13 +32,24 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
 
+    # required for database migration
+    from flask_script import Manager
+    from flask_migrate import Migrate, MigrateCommand
+
+    migrate = Migrate(app, db, compare_type=True)
+    manager = Manager(app)
+
+    manager.add_command('db', MigrateCommand)
+
+    # register the strava integration
     from strivial.strava import stravaIntegration
     app.strava = stravaIntegration.StravaIntegration()
 
     # apply the blueprints
-    from strivial.blueprints import routes, errors
-    app.register_blueprint(routes.bp)
+    from strivial.blueprints import auth, about, errors
+    app.register_blueprint(auth.bp)
     app.register_blueprint(errors.bp)
+    app.register_blueprint(about.bp)
 
     app.add_url_rule('/', endpoint='home')
 

@@ -4,7 +4,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from flask import current_app as app
 
-bp = Blueprint('routes', __name__, url_prefix='/')
+bp = Blueprint('auth', __name__, url_prefix='/')
 
 #----------------------------------------------------------------------------#
 # Controllers.
@@ -17,11 +17,6 @@ def home():
         return show_after_auth()
 
     return render_template('pages/main.home.html', logged_in=app.strava.logged_in)
-
-
-@bp.route('/about')
-def about():
-    return render_template('pages/main.about.html', logged_in=app.strava.logged_in)
 
 @bp.route('/authorized', methods=['GET', 'POST'])
 def authorized():
@@ -40,10 +35,10 @@ def authorized():
     return show_after_auth()
 
 def show_after_auth():
-    athlete = app.strava.get_athlete()
-    athlete_name = "{0} {1}".format(athlete.firstname, athlete.lastname)
+    athlete = app.strava.get_athlete(request.remote_addr)
+    athlete_name = "{0} {1}".format(athlete.first_name, athlete.last_name)
     thirty_day_averages = app.strava.get_thirty_day_averages()
-    last_five_activities = app.strava.get_last_activities(5)
+    last_five_activities = app.strava.get_last_activities_minimal(5)
     print(last_five_activities)
 
     return render_template('pages/main.auth.html', logged_in=app.strava.logged_in, athlete_name=athlete_name,

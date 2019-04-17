@@ -26,10 +26,10 @@
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
-            <a class="nav-link" href="{{ url_for('routes.home') }}">Home <span class="sr-only">(current)</span></a>
+            <a class="nav-link" href="{{ url_for('auth.home') }}">Home <span class="sr-only">(current)</span></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('routes.about') }}">About</a>
+            <a class="nav-link" href="{{ url_for('about.about') }}">About</a>
           </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
@@ -42,7 +42,7 @@
         </ul>
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('routes.logout') }}">Logout</a>
+            <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
           </li>
         </ul>
       </div>
@@ -71,6 +71,15 @@
             <h2>Recent Rides</h2>
             {% if not logged_in %}
             <p>No ride data available when not logged in.</p>
+            {% elif last_activities is defined %}
+              {% for activity in last_activities %}
+                <div class="activity">
+                  <div class="activity-name">{{ activity.name }}</div>
+                  <pre class="activity-time">{{ activity.length_in_time }}</pre>
+                </div>
+              {% endfor %}
+            {% else %}
+            <p>No recent rides found!</p>
             {% endif %}
             <p><a class="btn btn-secondary" href="#" role="button" aria-disabled="{{ not logged_in }}">View details &raquo;</a></p>
           </div>

@@ -13,12 +13,5 @@ class User(db.Model):
     token_expires_at = db.Column(db.BigInteger())
     activity_access = db.Column(db.Boolean())
 
-    def __init__(self, name=None, access_token=None, refresh_token=None, token_expires_at=None, activity_access=False):
-        self.name = name
-        self.access_token = access_token
-        self.refresh_token = refresh_token
-        self.token_expires_at = token_expires_at
-        self.activity_access = activity_access
-
     def __repr__(self):
         return '<id {}>'.format(self.id)
