@@ -9,7 +9,7 @@ class Athlete(db.Model):
 
     athlete_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(120), ForeignKey('users.name'), nullable=False)
-    user = db.relationship('User', backref=db.backref('athletes', lazy=True))
+    user = db.relationship('User', cascade='all,delete', backref=db.backref('athletes', cascade='all,delete', lazy=True))
     first_name = db.Column(db.String(120))
     last_name = db.Column(db.String(120))
 

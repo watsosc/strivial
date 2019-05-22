@@ -9,7 +9,7 @@ class Activity(db.Model):
 
     activity_id = db.Column(db.Integer, primary_key=True)
     athlete_id = db.Column(db.Integer, ForeignKey('athletes.athlete_id'), unique=True, nullable=False)
-    athlete = db.relationship('Athlete', backref=db.backref('activities', lazy=True))
+    athlete = db.relationship('Athlete', backref=db.backref('activities', cascade='all,delete', lazy=True))
     name = db.Column(db.String(250))
     date = db.Column(db.DateTime)
     length_in_time = db.Column(db.Integer)

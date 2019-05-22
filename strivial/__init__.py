@@ -46,10 +46,11 @@ def create_app(test_config=False):
     app.strava = stravaIntegration.StravaIntegration()
 
     # apply the blueprints
-    from strivial.blueprints import auth, about, errors
+    from strivial.blueprints import auth, about, errors, strava_rides
     app.register_blueprint(auth.bp)
     app.register_blueprint(errors.bp)
     app.register_blueprint(about.bp)
+    app.register_blueprint(strava_rides.bp)
 
     app.add_url_rule('/', endpoint='home')
 

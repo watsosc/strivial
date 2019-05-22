@@ -6,6 +6,6 @@
   <h1 class="display-3">Authorized</h1>
 </div>
 <p class="lead">You are now authorized with Strava as <strong>{{ athlete_name }}</strong>!</p>
-<a class="btn btn-outline-primary btn" role="button" href="{{ load_rides }}">Load last month of rides</a>
+<a class="btn btn-outline-primary btn" role="button" href="{{ url_for('strava_rides.load_rides') }}">Load last month of rides</a>
 
 {% endblock %}

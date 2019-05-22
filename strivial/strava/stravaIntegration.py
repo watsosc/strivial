@@ -11,6 +11,8 @@ from stravalib.client import Client
 
 class StravaIntegration:
     def __init__(self):
+        logging.basicConfig(level=logging.DEBUG)
+
         file_location = os.path.dirname(__file__)
         client_file = open(file_location + '/clienttoken', 'r')
         client_info = dict(line.split('=') for line in client_file.read().splitlines())
@@ -18,6 +20,7 @@ class StravaIntegration:
         self.client_secret = client_info['secret']
         self.client = Client()
         self.redirect_uri = 'http://localhost:5000/authorized'
+        self.current_athlete = None
         self.logged_in = False
         client_file.close()
 
@@ -28,15 +31,17 @@ class StravaIntegration:
         user = db.session.query(users.User).filter_by(name=username).first()
         # we found a user and the token is still valid, that's great!
         if user is not None and user.token_expires_at > int(time.time()):
-            logging.debug("Valid token found for user at IP: {}".format(username))
+            logging.info("Valid token found for user at IP: {}".format(username))
             self.client = Client(access_token=user.access_token)
             self.logged_in = True
+            return True
         # we found a user but their token is expired, let's delete them
         # TODO: there must be a way to refresh this token
         elif user is not None:
-            logging.debug("Expired token found for user at IP: {}".format(username))
+            logging.info("Expired token found for user at IP: {}".format(user.name))
             db.session.delete(user)
             db.session.commit()
+        return False
 
     def log_in_user(self, username, code, scope):
         # get the auth tokens from strava based on the returned code
@@ -52,9 +57,10 @@ class StravaIntegration:
                 token_expires_at=token_response['expires_at'],
                 activity_access=self.get_activity_access(scope)
             )
+            self.client.access_token = token_response['access_token']
             db.session.add(user)
             db.session.commit()
-            logging.debug("Successfully logged in user with IP: {}".format(username))
+            logging.info("Successfully logged in user with IP: {}".format(username))
         except exc.SQLAlchemyError:
             logging.warning("Unable to add user with IP: {}".format(username))
             db.session.rollback()
@@ -68,7 +74,7 @@ class StravaIntegration:
             user = db.session.query(users.User).filter_by(name=username).first()
             db.session.delete(user)
             db.session.commit()
-            logging.debug("Logged out user with IP: {}".format(username))
+            logging.info("Logged out user with IP: {}".format(username))
         except exc.SQLAlchemyError:
             logging.warning("Unable to log out user with IP: {}".format(username))
             db.session.rollback()
@@ -97,17 +103,26 @@ class StravaIntegration:
             )
             db.session.add(athlete)
             db.session.commit()
-            logging.debug("Added new athlete with ID: {}".format(athlete_stream.id))
+            logging.info("Added new athlete with ID: {}".format(athlete_stream.id))
         except exc.SQLAlchemyError:
             logging.warning("Unable to add athlete with ID: {}".format(athlete_stream.id))
             db.session.rollback()
             pass
 
+        self.current_athlete = athlete
         return athlete
 
+    def get_athlete_name(self):
+        if self.current_athlete is not None:
+            name = "{0} {1}".format(self.current_athlete.first_name, self.current_athlete.last_name)
+            return name
+        else:
+            return ''
+
     def load_activities(self, start_date=None, end_date=None, limit=None):
-        activities = self.client.get_activities(before=end_date, after=start_date, limit=limit)
-        for activity in activities:
+        logging.info("Attempting to load rides for current user since date {}.".format(start_date))
+        activity_list = self.client.get_activities(before=end_date, after=start_date, limit=limit)
+        for activity in activity_list:
             power_stream = self.client.get_activity_streams(activity_id=activity.id, types=['watts'], series_type='time')
             try:
                 new_activity = activities.Activity(
@@ -117,13 +132,13 @@ class StravaIntegration:
                     date=activity.start_date,
                     length_in_time=activity.moving_time,
                     length_in_distance=activity.distance,
-                    normalized_power=activity.weighted_average_power,
+                    normalized_power=activity.weighted_average_watts,
                     total_power=activity.kilojoules,
                     power_stream=dumps(power_stream)
                 )
                 db.session.add(new_activity)
                 db.session.commit()
-                logging.debug("Successfully loaded activity {}".format(activity.id))
+                logging.info("Successfully loaded activity {}".format(activity.id))
             except exc.SQLAlchemyError:
                 logging.warning("Unable to add activity with ID: {}".format(activity.id))
                 db.session.rollback()
