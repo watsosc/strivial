@@ -42,8 +42,8 @@ def create_app(test_config=False):
     manager.add_command('db', MigrateCommand)
 
     # register the strava integration
-    from strivial.strava import stravaIntegration
-    app.strava = stravaIntegration.StravaIntegration()
+    from strivial.strava import strava_integration
+    app.strava = strava_integration.StravaIntegration()
 
     # apply the blueprints
     from strivial.blueprints import auth, about, errors, strava_rides
