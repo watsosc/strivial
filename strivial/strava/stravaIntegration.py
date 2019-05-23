@@ -93,21 +93,23 @@ class StravaIntegration:
             return False
 
     def get_athlete(self, username):
-        athlete_stream = self.client.get_athlete()
-        try:
-            athlete = athletes.Athlete(
-                athlete_id=athlete_stream.id,
-                user_id=username,
-                first_name=athlete_stream.firstname,
-                last_name=athlete_stream.lastname
-            )
-            db.session.add(athlete)
-            db.session.commit()
-            logging.info("Added new athlete with ID: {}".format(athlete_stream.id))
-        except exc.SQLAlchemyError:
-            logging.warning("Unable to add athlete with ID: {}".format(athlete_stream.id))
-            db.session.rollback()
-            pass
+        athlete = db.session.query(athletes.Athlete).filter_by(user_id=username).first()
+        if athlete is None:
+            athlete_stream = self.client.get_athlete()
+            try:
+                athlete = athletes.Athlete(
+                    athlete_id=athlete_stream.id,
+                    user_id=username,
+                    first_name=athlete_stream.firstname,
+                    last_name=athlete_stream.lastname
+                )
+                db.session.add(athlete)
+                db.session.commit()
+                logging.info("Added new athlete with ID: {}".format(athlete_stream.id))
+            except exc.SQLAlchemyError:
+                logging.warning("Unable to add athlete with ID: {}".format(athlete_stream.id))
+                db.session.rollback()
+                pass
 
         self.current_athlete = athlete
         return athlete
@@ -152,7 +154,7 @@ class StravaIntegration:
             .order_by(activities.Activity.date.desc())\
             .limit(limit).all()
 
-        logging.debug("Found {} recent activities in db".format(len(latest_activities)))
+        logging.info("Found {} recent activities in db".format(len(latest_activities)))
 
         return latest_activities
 
