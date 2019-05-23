@@ -11,29 +11,32 @@ from stravalib.client import Client
 
 class StravaIntegration:
     def __init__(self):
+        # remember to do this to set the minimum logging level
         logging.basicConfig(level=logging.DEBUG)
 
+        # grab out all the client info, saved in a file in the same folder as this runs
         file_location = os.path.dirname(__file__)
         client_file = open(file_location + '/clienttoken', 'r')
         client_info = dict(line.split('=') for line in client_file.read().splitlines())
         self.client_id = client_info['client_id']
         self.client_secret = client_info['secret']
-        self.client = Client()
-        self.redirect_uri = 'http://localhost:5000/authorized'
-        self.current_athlete = None
-        self.logged_in = False
         client_file.close()
 
+        self.client = Client()
+        # redirect uri is where strava sends you after their Oauth runs
+        self.redirect_uri = 'http://localhost:5000/authorized'
+
+    # builds the url for Strava's Oauth
     def get_auth_url(self):
         return self.client.authorization_url(client_id=self.client_id, redirect_uri=self.redirect_uri)
 
+    # if the user has a valid token, returns True, otherwise False
     def check_if_user_has_valid_token(self, username):
         user = db.session.query(users.User).filter_by(name=username).first()
         # we found a user and the token is still valid, that's great!
         if user is not None and user.token_expires_at > int(time.time()):
             logging.info("Valid token found for user at IP: {}".format(username))
             self.client = Client(access_token=user.access_token)
-            self.logged_in = True
             return True
         # we found a user but their token is expired, let's delete them
         # TODO: there must be a way to refresh this token
@@ -43,15 +46,19 @@ class StravaIntegration:
             db.session.commit()
         return False
 
+    # called after we get the Oauth credentials from Strava
+    # creates Athlete and User objects for this user and saves them to DB
     def log_in_user(self, username, code, scope):
         # get the auth tokens from strava based on the returned code
         # in the case of a failed login we will never get to this method, so we don't need to worry about the case of an invalid code
         token_response = self.get_token_response(code)
+        athlete = self.get_athlete(username)
 
         try:
             # we use the current IP address as the username, this way if someone comes back from the same IP we can log them right in
             user = users.User(
                 name=username,
+                athlete_id = athlete.athlete_id,
                 access_token=token_response['access_token'],
                 refresh_token=token_response['refresh_token'],
                 token_expires_at=token_response['expires_at'],
@@ -66,8 +73,8 @@ class StravaIntegration:
             db.session.rollback()
             pass
 
-        self.logged_in = True
-
+    # logs a user out, we delete their User object but no need to delete the Athlete object
+    # they might come back and we don't want to have to download their profile and activities again
     def log_out_user(self, username):
         self.client.deauthorize()
         try:
@@ -80,11 +87,11 @@ class StravaIntegration:
             db.session.rollback()
             pass
 
-        self.logged_in = False
-
+    # gets the token response from Strava
     def get_token_response(self, code):
         return self.client.exchange_code_for_token(client_id=self.client_id, client_secret=self.client_secret, code=code)
 
+    # reads an activity scope and finds out whether or not we have read access
     def get_activity_access(self, scope):
         activity_scope = scope.split(':')
         if len(activity_scope) > 1:
@@ -92,6 +99,7 @@ class StravaIntegration:
         else:
             return False
 
+    # gets the Athlete object for the logged in user and saves to DB
     def get_athlete(self, username):
         athlete = db.session.query(athletes.Athlete).filter_by(user_id=username).first()
         if athlete is None:
@@ -99,7 +107,6 @@ class StravaIntegration:
             try:
                 athlete = athletes.Athlete(
                     athlete_id=athlete_stream.id,
-                    user_id=username,
                     first_name=athlete_stream.firstname,
                     last_name=athlete_stream.lastname
                 )
@@ -111,16 +118,19 @@ class StravaIntegration:
                 db.session.rollback()
                 pass
 
-        self.current_athlete = athlete
         return athlete
 
-    def get_athlete_name(self):
-        if self.current_athlete is not None:
-            name = "{0} {1}".format(self.current_athlete.first_name, self.current_athlete.last_name)
+    # pulls the athlete's name out of an Athlete object
+    def get_athlete_name(self, username):
+        athlete = self.get_athlete(username)
+        if athlete is not None:
+            name = "{0} {1}".format(athlete.first_name, athlete.last_name)
             return name
         else:
             return ''
 
+    # used to pull in activities for the logged in user
+    # accepts optional arguments for the search start date, end date and a limit on number of results
     def load_activities(self, start_date=None, end_date=None, limit=None):
         logging.info("Attempting to load rides for current user since date {}.".format(start_date))
         activity_list = self.client.get_activities(before=end_date, after=start_date, limit=limit)
@@ -145,6 +155,8 @@ class StravaIntegration:
                 logging.warning("Unable to add activity with ID: {}".format(activity.id))
                 db.session.rollback()
 
+    # get a subset of most recent activities from the DB
+    # required argument limit gives the maximum number to return
     def get_last_activities_minimal(self, limit):
         if limit < 1:
             return None
