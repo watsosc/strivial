@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for
 from flask import current_app as app
 
 from strivial.services import user_service, athlete_service, activity_service
@@ -26,9 +26,10 @@ def load_rides():
         date_string = latest_activity_date.replace(microsecond=0).isoformat()
         app.strava.load_activities(start_date=date_string)
         last_five_activities = activity_service.get_last_activities_minimal(5)
+
         return render_template('pages/main.load.html',
                                logged_in=user_has_valid_token,
                                athlete_name=athlete_service.get_athlete_name(username),
                                last_activities=last_five_activities)
     else:
-        return render_template('pages/main.auth.html', logged_in=user_has_valid_token)
+        return redirect(url_for('home'))

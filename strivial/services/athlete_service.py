@@ -37,7 +37,6 @@ def create_athlete(athlete_stream):
 # pulls the athlete's name out of an Athlete object
 def get_athlete_name(username):
     athlete = get_athlete(username)
-    logging.debug(athlete)
     if athlete is not None:
         name = "{0} {1}".format(athlete.first_name, athlete.last_name)
         return name

@@ -6,8 +6,12 @@ def format_seconds(value, display_seconds=False):
     hours, rem = divmod(value, 3600)
     minutes, seconds = divmod(rem, 60)
 
-    formatted_duration = "{0}h{1}m".format(int(hours), int(minutes))
-    if display_seconds:
-        formatted_duration += ":{}".format(int(seconds))
+    formatted_duration = ""
+    if hours > 0:
+        formatted_duration += "{}h".format(int(hours))
+    if not display_seconds and minutes > 0:
+        formatted_duration += "{}m".format(int(minutes))
+    if display_seconds and minutes > 0:
+        formatted_duration += "{0}:{1}".format(int(minutes), int(seconds))
 
     return formatted_duration

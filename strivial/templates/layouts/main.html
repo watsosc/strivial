@@ -18,28 +18,12 @@
   <body>
 
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-      <a class="navbar-brand" href="#">Navbar</a>
+      <a class="navbar-brand" href="#">Home</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="{{ url_for('auth.home') }}">Home <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('about.about') }}">About</a>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
-            <div class="dropdown-menu" aria-labelledby="dropdown01">
-              <a class="dropdown-item" href="#">Action</a>
-              <a class="dropdown-item" href="#">Another action</a>
-              <a class="dropdown-item" href="#">Something else here</a>
-            </div>
-          </li>
-        </ul>
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
@@ -59,36 +43,20 @@
 
       <div class="container">
         <!-- Example row of columns -->
-        <div class="row">
-          <div class="col-md-4">
-            <h2>Power</h2>
-            {% if not logged_in %}
-            <p>No power data available when not logged in.</p>
-            {% endif %}
-            <p><a class="btn btn-secondary" href="#" role="button" aria-disabled="{{ not logged_in }}">View details &raquo;</a></p>
-          </div>
-          <div class="col-md-4">
             <h2>Recent Rides</h2>
             {% if not logged_in %}
             <p>No ride data available when not logged in.</p>
             {% elif last_activities is defined %}
+            <div class="row">
               {% for activity in last_activities %}
-                <div class="activity">
-                  <div class="activity-name">{{ activity.name }}</div>
-                  <pre class="activity-time">{{ activity.length_in_time|format_seconds }}</pre>
-                </div>
+              <div class="col-8">{{ activity.name }}</div>
+              <div class="col">{{ activity.length_in_time|format_seconds }}</div>
               {% endfor %}
+            </div>
+            <p><a class="btn btn-secondary" href="#" role="button">View all rides &raquo;</a></p>
             {% else %}
             <p>No recent rides found!</p>
             {% endif %}
-            <p><a class="btn btn-secondary" href="#" role="button" aria-disabled="{{ not logged_in }}">View details &raquo;</a></p>
-          </div>
-          <div class="col-md-4">
-            <h2>Routing</h2>
-            {% if not logged_in %}
-            <p>No routing data available when not logged in.</p>
-            {% endif %}
-            <p><a class="btn btn-secondary" href="#" role="button" aria-disabled="{{ not logged_in }}">View details &raquo;</a></p>
           </div>
         </div>
 
@@ -99,7 +67,7 @@
     </main>
 
     <footer class="container">
-      <p>&copy; Company 2017-2018</p>
+      <p><i>Now that's Strivial baby</i></p>
     </footer>
 
     <!-- Bootstrap core JavaScript

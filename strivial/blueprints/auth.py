@@ -27,23 +27,22 @@ def authorized():
     if error:
         return render_template('pages/main.auth-failed.html', error=error, logged_in=app.strava.logged_in)
 
-    logged_in = user_service.check_if_user_has_valid_token(request.remote_addr)
-    if logged_in is False:
-        # Strava sends back something like this:
-        #    /authorized?state=&code=xxxxxxxxxxxxxxxxxxxxxxxxxx&scope=read,activity:read
-        # the code confirms the Oauth login, the scope gives our access to a user's files
-        code = request.args.get('code')
-        scope = request.args.get('scope')
-        app.strava.log_in_user(request.remote_addr, code, scope)
+    # Strava sends back something like this:
+    #    /authorized?state=&code=xxxxxxxxxxxxxxxxxxxxxxxxxx&scope=read,activity:read
+    # the code confirms the Oauth login, the scope gives our access to a user's files
+    code = request.args.get('code')
+    scope = request.args.get('scope')
+    app.strava.log_in_user(request.remote_addr, code, scope)
 
-    return show_after_auth()
+    return redirect(url_for('home'))
 
 def show_after_auth():
     logged_in = user_service.check_if_user_has_valid_token(request.remote_addr)
 
-    athlete_name = athlete_service.get_athlete_name(request.remote_addr)
-    #thirty_day_averages = app.strava.get_thirty_day_averages()
-    last_five_activities = activity_service.get_last_activities_minimal(5)
+    if logged_in:
+        athlete_name = athlete_service.get_athlete_name(request.remote_addr)
+        #thirty_day_averages = app.strava.get_thirty_day_averages()
+        last_five_activities = activity_service.get_last_activities_minimal(5)
 
     return render_template('pages/main.auth.html', logged_in=logged_in, athlete_name=athlete_name,
                            averages=None, last_activities=last_five_activities)
