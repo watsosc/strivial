@@ -19,6 +19,9 @@ def load_rides():
         # if we don't have one let's just load everything in the last month
         if latest_activity_date is None:
             latest_activity_date = datetime.utcnow() - relativedelta(months=1)
+        # add one hour to the time we have, if we are looking at the last month it doesn't matter
+        # but if we got the last activity time it prevents us getting that initial activity again
+        latest_activity_date += relativedelta(hours=1)
 
         date_string = latest_activity_date.replace(microsecond=0).isoformat()
         app.strava.load_activities(start_date=date_string)
