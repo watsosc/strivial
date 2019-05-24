@@ -75,7 +75,7 @@
               {% for activity in last_activities %}
                 <div class="activity">
                   <div class="activity-name">{{ activity.name }}</div>
-                  <pre class="activity-time">{{ activity.length_in_time }}</pre>
+                  <pre class="activity-time">{{ activity.length_in_time|format_seconds }}</pre>
                 </div>
               {% endfor %}
             {% else %}

@@ -1,6 +1,8 @@
 #----------------------------------------------------------------------------#
 # Imports
 #----------------------------------------------------------------------------#
+from strivial.services import user_service, athlete_service, activity_service
+
 from flask import Blueprint, render_template, request, redirect, url_for
 from flask import current_app as app
 
@@ -11,12 +13,13 @@ bp = Blueprint('auth', __name__, url_prefix='/')
 #----------------------------------------------------------------------------#
 @bp.route('/')
 def home():
-    logged_in = app.strava.check_if_user_has_valid_token(request.remote_addr)
+    logged_in = user_service.check_if_user_has_valid_token(request.remote_addr)
 
     if logged_in:
+        app.strava.log_in_user_with_active_session(request.remote_addr)
         return show_after_auth()
 
-    return render_template('pages/main.home.html', logged_in=app.strava.logged_in)
+    return render_template('pages/main.home.html', logged_in=logged_in)
 
 @bp.route('/authorized', methods=['GET', 'POST'])
 def authorized():
@@ -24,7 +27,7 @@ def authorized():
     if error:
         return render_template('pages/main.auth-failed.html', error=error, logged_in=app.strava.logged_in)
 
-    logged_in = app.strava.check_if_user_has_valid_token(request.remote_addr)
+    logged_in = user_service.check_if_user_has_valid_token(request.remote_addr)
     if logged_in is False:
         # Strava sends back something like this:
         #    /authorized?state=&code=xxxxxxxxxxxxxxxxxxxxxxxxxx&scope=read,activity:read
@@ -36,15 +39,14 @@ def authorized():
     return show_after_auth()
 
 def show_after_auth():
-    logged_in = app.strava.check_if_user_has_valid_token(request.remote_addr)
+    logged_in = user_service.check_if_user_has_valid_token(request.remote_addr)
 
-    athlete_name = app.strava.get_athlete_name(request.remote_addr)
-    thirty_day_averages = app.strava.get_thirty_day_averages()
-    last_five_activities = app.strava.get_last_activities_minimal(5)
-    print(last_five_activities)
+    athlete_name = athlete_service.get_athlete_name(request.remote_addr)
+    #thirty_day_averages = app.strava.get_thirty_day_averages()
+    last_five_activities = activity_service.get_last_activities_minimal(5)
 
     return render_template('pages/main.auth.html', logged_in=logged_in, athlete_name=athlete_name,
-                           averages=thirty_day_averages, last_activities=last_five_activities)
+                           averages=None, last_activities=last_five_activities)
 
 @bp.route('/logout', methods=['GET', 'POST'])
 def logout():

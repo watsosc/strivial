@@ -1,5 +1,8 @@
 from flask import Blueprint, render_template, request
 from flask import current_app as app
+
+from strivial.services import user_service, athlete_service, activity_service
+
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -7,11 +10,22 @@ bp = Blueprint('strava_rides', __name__, url_prefix='/')
 
 @bp.route('/load-rides', methods=['GET'])
 def load_rides():
-    start_date = datetime.utcnow() - relativedelta(months=1)
-    date_string = start_date.replace(microsecond=0).isoformat()
-    user_has_valid_token = app.strava.check_if_user_has_valid_token(request.remote_addr)
+    username = request.remote_addr
+    user_has_valid_token = user_service.check_if_user_has_valid_token(username)
     if user_has_valid_token:
+        athlete = athlete_service.get_athlete(username)
+        # try getting the most recent activity that we have saved for this user
+        latest_activity_date = activity_service.get_most_recent_activity_date_for_athlete(athlete.athlete_id)
+        # if we don't have one let's just load everything in the last month
+        if latest_activity_date is None:
+            latest_activity_date = datetime.utcnow() - relativedelta(months=1)
+
+        date_string = latest_activity_date.replace(microsecond=0).isoformat()
         app.strava.load_activities(start_date=date_string)
-        return render_template('pages/main.load.html', logged_in=user_has_valid_token, athlete_name=app.strava.get_athlete_name())
+        last_five_activities = activity_service.get_last_activities_minimal(5)
+        return render_template('pages/main.load.html',
+                               logged_in=user_has_valid_token,
+                               athlete_name=athlete_service.get_athlete_name(username),
+                               last_activities=last_five_activities)
     else:
         return render_template('pages/main.auth.html', logged_in=user_has_valid_token)
