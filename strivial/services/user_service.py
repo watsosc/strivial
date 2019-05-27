@@ -6,7 +6,9 @@ from sqlalchemy import exc
 from strivial.database import db
 from strivial.models import users
 
-# if the user has a valid token, returns True, otherwise False
+'''
+if the user has a valid token, returns True, otherwise False
+'''
 def check_if_user_has_valid_token(username):
     user = db.session.query(users.User).filter_by(name=username).first()
     # we found a user and the token is still valid, that's great!
@@ -21,11 +23,16 @@ def check_if_user_has_valid_token(username):
         db.session.commit()
     return False
 
+'''
+gets the user based on the given username
+'''
 def get_user(username):
     return db.session.query(users.User).filter_by(name=username).first()
 
-# creates a user object
-# takes in an athlete ID, a token response returned from Strava and an activity access level
+'''
+creates a user object
+takes in an athlete ID, a token response returned from Strava and an activity access level
+'''
 def create_user(username, athlete_id, token_response, activity_access):
     try:
         user = users.User(
@@ -46,7 +53,9 @@ def create_user(username, athlete_id, token_response, activity_access):
 
     return user
 
-# based on a username, gets the active token if one can be found
+'''
+based on a username, gets the active token if one can be found
+'''
 def get_user_token(username):
     try:
         user = db.session.query(users.User).filter_by(name=username).first()
@@ -55,7 +64,9 @@ def get_user_token(username):
         logging.warning("Unable to find any user with IP: {}".format(username))
         return None
 
-# delete a given user when they log out
+'''
+delete a given user when they log out
+'''
 def remove_user(username):
     try:
         user = db.session.query(users.User).filter_by(name=username).first()

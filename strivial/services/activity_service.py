@@ -6,7 +6,9 @@ from pickle import dumps
 from strivial.database import db
 from strivial.models import activities
 
-# creates an activity for saving in DB based on the original strava activity and the power stream
+'''
+creates an activity and saves it in DB based on the original strava activity and the power stream
+'''
 def create_activity(strava_activity, power_stream):
     try:
         new_activity = activities.Activity(
@@ -27,6 +29,10 @@ def create_activity(strava_activity, power_stream):
         logging.warning("Unable to add activity with ID: {0}\n Error: {1}".format(strava_activity.id, error))
         db.session.rollback()
 
+'''
+get a single activity based on a given unique id
+returns None if no activity is found
+'''
 def get_activity(activity_id):
     try:
         activity = db.session\
@@ -40,8 +46,10 @@ def get_activity(activity_id):
 
     return None
 
-# get a subset of most recent activities from the DB
-# required argument limit gives the maximum number to return
+'''
+get a subset of most recent activities from the DB
+required argument limit gives the maximum number to return, returns None if the limit is 0
+'''
 def get_last_activities_minimal(limit):
     if limit < 1:
         return None
@@ -55,6 +63,10 @@ def get_last_activities_minimal(limit):
 
     return latest_activities
 
+'''
+gets the most recent activity for the current user
+returns None if there is no activity
+'''
 def get_most_recent_activity_date_for_athlete(athlete_id):
     try:
         latest_activity = db.session\

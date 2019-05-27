@@ -8,6 +8,10 @@ from dateutil.relativedelta import relativedelta
 
 bp = Blueprint('strava_rides', __name__, url_prefix='/')
 
+'''
+this route will load all the new rides for a user in the last month, either getting all rides in a month; or by getting
+all the rides since the most recent one loaded
+'''
 @bp.route('/load-rides', methods=['GET'])
 def load_rides():
     username = request.remote_addr
@@ -33,6 +37,9 @@ def load_rides():
     else:
         return redirect(url_for('home'))
 
+'''
+this route shows specific info for a single ride, including power data
+'''
 @bp.route('/ride/<activity_id>', methods=['GET'])
 def show_ride(activity_id):
     activity = activity_service.get_activity(activity_id)

@@ -54,6 +54,7 @@ def create_app(test_config=False):
 
     app.add_url_rule('/', endpoint='home')
 
+    # initialize the filters
     with app.app_context():
         from strivial.util import filters
 

@@ -1,6 +1,8 @@
 from flask import current_app as app
 
-# given a total number of seconds, give a duration broken into hours, minutes and optionally seconds
+'''
+given a total number of seconds, give a duration broken into hours, minutes and optionally seconds
+'''
 @app.template_filter()
 def format_seconds(value, display_seconds=False):
     hours, rem = divmod(value, 3600)
