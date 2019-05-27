@@ -27,6 +27,19 @@ def create_activity(strava_activity, power_stream):
         logging.warning("Unable to add activity with ID: {0}\n Error: {1}".format(strava_activity.id, error))
         db.session.rollback()
 
+def get_activity(activity_id):
+    try:
+        activity = db.session\
+            .query(activities.Activity)\
+            .filter_by(activity_id=activity_id)\
+            .first()
+        if activity is not None:
+            return activity
+    except exc.SQLAlchemyError as error:
+        logging.warning("Unable to load activity {0}\n Error: {1}".format(activity_id, error))
+
+    return None
+
 # get a subset of most recent activities from the DB
 # required argument limit gives the maximum number to return
 def get_last_activities_minimal(limit):
@@ -49,7 +62,8 @@ def get_most_recent_activity_date_for_athlete(athlete_id):
             .filter_by(athlete_id=athlete_id)\
             .order_by(activities.Activity.date.desc())\
             .first()
-        return latest_activity.date
+        if latest_activity is not None:
+            return latest_activity.date
     except exc.SQLAlchemyError as error:
         logging.warning("Unable to load activities for athlete {0}\n Error: {1}".format(athlete_id, error))
-        return None
+    return None

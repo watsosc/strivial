@@ -23,8 +23,7 @@ def load_rides():
         # but if we got the last activity time it prevents us getting that initial activity again
         latest_activity_date += relativedelta(hours=1)
 
-        date_string = latest_activity_date.replace(microsecond=0).isoformat()
-        app.strava.load_activities(start_date=date_string)
+        app.strava.load_activities(start_date=datetime.utcfromtimestamp(latest_activity_date.timestamp()))
         last_five_activities = activity_service.get_last_activities_minimal(5)
 
         return render_template('pages/main.load.html',
@@ -33,3 +32,8 @@ def load_rides():
                                last_activities=last_five_activities)
     else:
         return redirect(url_for('home'))
+
+@bp.route('/ride/<activity_id>', methods=['GET'])
+def show_ride(activity_id):
+    activity = activity_service.get_activity(activity_id)
+    return redirect(url_for('home'))
